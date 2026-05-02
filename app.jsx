@@ -35,7 +35,7 @@ function computeTriInfo(tri, offset) {
 /* ========================================
    Graph Component (SVG)
    ======================================== */
-function GraphView({ planeSize, gridSize, gridSnap, triangles, spiralTriangles, selectedIndex, onSelectTriangle, onOffsetChange }) {
+function GraphView({ planeSize, gridSize, gridSnap, triangles, spiralTriangles, selectedIndex, onSelectTriangle, onOffsetChange, shapeOffsets }) {
   const padding = 40;
   const wrapperRef = useRef(null);
   const svgRef = useRef(null);
@@ -59,8 +59,12 @@ function GraphView({ planeSize, gridSize, gridSnap, triangles, spiralTriangles, 
     return () => obs.disconnect();
   }, []);
 
-  // Reset offsets when shapes change
-  useEffect(() => { setOffsets({}); }, [triangles, spiralTriangles]);
+  // Sync local offsets with shapeOffsets
+  useEffect(() => { 
+    if (dragIndex === null) {
+      setOffsets(shapeOffsets || {});
+    }
+  }, [shapeOffsets, dragIndex]);
 
   const { w, h } = dims;
   const graphW = w - padding * 2;
@@ -489,7 +493,7 @@ function SpiralCreator({ onDrawSpiral }) {
 /* ========================================
    Side Panel
    ======================================== */
-function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, onDrawTriangles, onDrawSpiral, graphActive }) {
+function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, onDrawTriangles, onDrawSpiral, graphActive, onExport }) {
   const tabs = ['Calculators', 'Tools', 'Settings'];
 
   return (
@@ -511,8 +515,14 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
           </>
         )}
         {activeTab === 'Tools' && (
-          <div style={{ padding: '16px 0', fontSize: '0.82rem', opacity: 0.6 }}>
-            <p>Additional tools and exports coming soon.</p>
+          <div className="tools-section">
+            <h3>Export Design</h3>
+            <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '12px' }}>
+              Save your current grid configuration and triangles.
+            </p>
+            <button id="btn-export-svg" className="calc-btn" onClick={onExport} style={{ backgroundColor: '#55d6be', color: '#1a1a1a', borderColor: '#55d6be' }}>
+              Export as .SVG
+            </button>
           </div>
         )}
         {(activeTab === 'Settings') && (
@@ -560,13 +570,16 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
 /* ========================================
    Triangle Info Panel
    ======================================== */
-function TriangleInfoPanel({ triInfo, index, color }) {
+function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll }) {
   if (!triInfo) {
     return (
       <div className="tri-info-panel" id="tri-info-panel">
         <div className="tri-info-empty">
           <div className="tri-info-empty-icon">📐</div>
           <p>Click a triangle on the graph to view its details.</p>
+        </div>
+        <div className="tri-info-actions" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px' }}>
+          <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: '#ff6b6b', color: 'white', borderColor: '#ff6b6b' }}>Delete All Triangles</button>
         </div>
       </div>
     );
@@ -619,6 +632,11 @@ function TriangleInfoPanel({ triInfo, index, color }) {
           </div>
         </div>
       </div>
+
+      <div className="tri-info-actions" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px' }}>
+        <button className="calc-btn" onClick={onDelete} style={{ backgroundColor: '#ff9999', color: 'white', borderColor: '#ff9999' }}>Delete Triangle</button>
+        <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: '#ff6b6b', color: 'white', borderColor: '#ff6b6b' }}>Delete All Triangles</button>
+      </div>
     </div>
   );
 }
@@ -641,11 +659,13 @@ function App() {
   const [shapeOffsets, setShapeOffsets] = useState({});
 
   const handleDrawTriangles = useCallback(tris => {
-    setTriangles(tris); setSpiralTriangles([]); setSelectedIndex(null); setShapeOffsets({});
+    setTriangles(prev => [...prev, ...tris]);
+    setSelectedIndex(null);
     if (page === 'home') setPage('graph');
   }, [page]);
   const handleDrawSpiral = useCallback(tris => {
-    setSpiralTriangles(tris); setTriangles([]); setSelectedIndex(null); setShapeOffsets({});
+    setSpiralTriangles(prev => [...prev, ...tris]);
+    setSelectedIndex(null);
     if (page === 'home') setPage('graph');
   }, [page]);
 
@@ -657,8 +677,60 @@ function App() {
     setShapeOffsets(prev => ({ ...prev, [idx]: offset }));
   }, []);
 
+  const handleDeleteTriangle = useCallback(() => {
+    if (selectedIndex === null) return;
+    const isSpiral = selectedIndex >= triangles.length;
+    if (isSpiral) {
+      const spiralIdx = selectedIndex - triangles.length;
+      setSpiralTriangles(prev => prev.filter((_, i) => i !== spiralIdx));
+    } else {
+      setTriangles(prev => prev.filter((_, i) => i !== selectedIndex));
+    }
+    
+    setShapeOffsets(prev => {
+      const next = {};
+      Object.keys(prev).forEach(key => {
+        const k = parseInt(key, 10);
+        if (k < selectedIndex) next[k] = prev[k];
+        else if (k > selectedIndex) next[k - 1] = prev[k];
+      });
+      return next;
+    });
+
+    setSelectedIndex(null);
+  }, [selectedIndex, triangles.length]);
+
+  const handleDeleteAllTriangles = useCallback(() => {
+    setTriangles([]);
+    setSpiralTriangles([]);
+    setShapeOffsets({});
+    setSelectedIndex(null);
+  }, []);
+
   // Compute info for selected triangle
   const allTriangles = useMemo(() => [...triangles, ...spiralTriangles], [triangles, spiralTriangles]);
+
+  const handleExportSvg = useCallback(() => {
+    const svgEl = document.querySelector('.graph-svg-wrapper svg');
+    if (!svgEl) return;
+    
+    const clonedSvg = svgEl.cloneNode(true);
+    if (!clonedSvg.getAttribute('xmlns')) {
+      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    
+    const svgData = clonedSvg.outerHTML;
+    const svgHeader = '<?xml version="1.0" standalone="no"?>\r\n';
+    const blob = new Blob([svgHeader + svgData], { type: "image/svg+xml;charset=utf-8" });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = "pythagorean_design.svg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  }, []);
   const selectedTriInfo = useMemo(() => {
     if (selectedIndex === null || !allTriangles[selectedIndex]) return null;
     return computeTriInfo(allTriangles[selectedIndex], shapeOffsets[selectedIndex]);
@@ -687,9 +759,16 @@ function App() {
                   selectedIndex={selectedIndex}
                   onSelectTriangle={handleSelectTriangle}
                   onOffsetChange={handleOffsetChange}
+                  shapeOffsets={shapeOffsets}
                 />
               </div>
-              <TriangleInfoPanel triInfo={selectedTriInfo} index={selectedIndex} color={selectedColor} />
+              <TriangleInfoPanel 
+                triInfo={selectedTriInfo} 
+                index={selectedIndex} 
+                color={selectedColor} 
+                onDelete={handleDeleteTriangle}
+                onDeleteAll={handleDeleteAllTriangles}
+              />
             </div>
           </>
         )}
@@ -702,6 +781,7 @@ function App() {
         onDrawTriangles={handleDrawTriangles}
         onDrawSpiral={handleDrawSpiral}
         graphActive={page === 'graph'}
+        onExport={handleExportSvg}
       />
     </div>
   );

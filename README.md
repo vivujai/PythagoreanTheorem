@@ -4,7 +4,7 @@ This is a school project on the pythagorean theorem. This has a cartesian plane 
 ## Basic Features
 - Create triangles
 - Solve for missing sides
-- Pythagorean Theorem explainer
+- Pythagorean Theorem
 
 ## Code Structure
 - app.jsx
@@ -12,7 +12,7 @@ This is a school project on the pythagorean theorem. This has a cartesian plane 
 - index.html
 
 ## How to Run
-- Open index.html in a web browser
+- Open index.html in a web browser or vist https://vivujai.github.io/PythagoreanTheorem/
 
 ## Future Features
 - Tools to rotate, scale, and move triangles

@@ -26,35 +26,35 @@ This is a school project on the pythagorean theorem. This has a cartesian plane 
 --azure-mist: #cddddd;
 --graphite: #2e2f2f;
 
-Olive Wood
-/* CSS HEX */
+- Olive Wood
 --olive-leaf: #606c38ff;
 --black-forest: #283618ff; 
 --cornsilk: #fefae0ff; 
 --sunlit-clay: #dda15eff; 
 --copperwood: #bc6c25ff;
 
-Neon Blue
+- Neon Blue
 --neon-pink: #f72585ff;
 --indigo-bloom: #7209b7ff;
 --vivid-royal: #3a0ca3ff;
 --electric-sapphire: #4361eeff;
 --sky-aqua: #4cc9f0ff;
 
-Modern Palette
+- Modern Palette
 --alabaster-grey: #cfdbd5ff;
 --soft-linen: #e8eddfff;
 --tuscan-sun: #f5cb5cff;
 --carbon-black: #242423ff;
 --graphite: #333533ff;
 
-Watermelon Sugar
+- Watermelon Sugar
 --bubblegum-pink: #ef476fff;
 --golden-pollen: #ffd166ff;
 --emerald: #06d6a0ff;
 --ocean-blue: #118ab2ff;
 --dark-teal: #073b4cff;
-Pastel Serenity
+  
+- Pastel Serenity
 --petal-rouge: #e27396ff;
 --pink-mist: #ea9ab2ff;
 --petal-frost: #efcfe3ff;

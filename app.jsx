@@ -3,7 +3,7 @@ const { useState, useCallback, useMemo, useRef, useEffect } = React;
 /* ========================================
    Constants & Utilities
    ======================================== */
-const COLORS = ['#acfcd9ff', '#55d6beff', '#058ed9ff'];
+const COLORS = ['var(--aquamarine)', 'var(--turquoise)', 'var(--blue-bell)'];
 
 function getTriangleColor(index) {
   return COLORS[index % COLORS.length];
@@ -237,7 +237,7 @@ function GraphView({ planeSize, gridSize, gridSnap, triangles, spiralTriangles, 
   const allTriangles = [...triangles, ...spiralTriangles];
 
   return (
-    <div className="graph-svg-wrapper" ref={wrapperRef} style={{ background: '#cddddd' }}>
+    <div className="graph-svg-wrapper" ref={wrapperRef} style={{ background: 'var(--azure-mist)' }}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${w} ${h}`}
@@ -493,7 +493,7 @@ function SpiralCreator({ onDrawSpiral }) {
 /* ========================================
    Side Panel
    ======================================== */
-function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, onDrawTriangles, onDrawSpiral, graphActive, onExport }) {
+function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, theme, setTheme, onDrawTriangles, onDrawSpiral, graphActive, onExport }) {
   const tabs = ['Calculators', 'Tools', 'Settings'];
 
   return (
@@ -553,6 +553,19 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                   <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+            <div className="settings-row" style={{ marginTop: '12px' }}>
+              <div className="input-group">
+                <label>Color Scheme</label>
+                <select id="select-theme" value={theme} onChange={e => setTheme(e.target.value)}>
+                  <option value="pastel-petals">Pastel Petals</option>
+                  <option value="olive-wood">Olive Wood</option>
+                  <option value="ocean-blue">Ocean Blue</option>
+                  <option value="modern-palette">Modern Palette</option>
+                  <option value="watermelon-sugar">Watermelon Sugar</option>
+                  <option value="pastel-serenity">Pastel Serenity</option>
                 </select>
               </div>
             </div>
@@ -653,6 +666,11 @@ function App() {
   const [triangles, setTriangles] = useState([]);
   const [spiralTriangles, setSpiralTriangles] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [theme, setTheme] = useState('pastel-petals');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Drag offsets mirror — we track offsets in GraphView but also need them here for the info panel.
   // Instead, GraphView will report offset changes. We keep a lightweight copy.
@@ -778,6 +796,7 @@ function App() {
         planeSize={planeSize} setPlaneSize={setPlaneSize}
         gridSize={gridSize} setGridSize={setGridSize}
         gridSnap={gridSnap} setGridSnap={setGridSnap}
+        theme={theme} setTheme={setTheme}
         onDrawTriangles={handleDrawTriangles}
         onDrawSpiral={handleDrawSpiral}
         graphActive={page === 'graph'}

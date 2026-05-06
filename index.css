@@ -840,10 +840,10 @@ body {
 [data-theme="ocean-blue"] {
   --azure-mist: #4cc9f0ff;
   --graphite: #3a0ca3ff;
-  --pastel-petal: #626eef;
+  --pastel-petal: #8543ee;
   --turquoise: #4361eeff;
   --aquamarine: #7209b7ff;
-  --blue-bell: #4361eeff;
+  --blue-bell: #626eef;
   --pastel-petal-dark: #7209b7ff;
   --pastel-petal-light: #4cc9f0ff;
 }
@@ -854,8 +854,8 @@ body {
   --pastel-petal: #cfdbd5ff;
   --turquoise: #f5cb5cff;
   --aquamarine: #333533ff;
-  --blue-bell: #f5cb5cff;
-  --pastel-petal-dark: #333533ff;
+  --blue-bell: #f0d99b;
+  --pastel-petal-dark: #333533;
   --pastel-petal-light: #e8eddfff;
 }
 
@@ -863,12 +863,11 @@ body {
   --azure-mist: #06d6a0ff;
   --graphite: #073b4cff;
   --pastel-petal: #ef476fff;
-  --turquoise: #06d6a0ff;
+  --turquoise: #ffd166ff;
   --aquamarine: #118ab2ff;
-  --blue-bell: #118ab2ff;
-  --pastel-petal-dark: #06d6a0ff;
-  ;
-  --pastel-petal-light: #A8DCAB;
+  --blue-bell: #a5ffd6;
+  --pastel-petal-dark: #ffd166ff;
+  --pastel-petal-light: #ffd166ff;
 }
 
 [data-theme="pastel-serenity"] {

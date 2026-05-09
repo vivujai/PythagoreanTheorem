@@ -113,6 +113,7 @@ body {
   overflow: hidden;
   padding: 0 var(--space-xl) var(--space-xl);
   display: flex;
+  flex-direction: row;
   gap: var(--space-lg);
 }
 
@@ -646,8 +647,8 @@ body {
    Triangle Info Panel
    ======================================== */
 .tri-info-panel {
-  width: 240px;
-  min-width: 240px;
+  width: 280px;
+  min-width: 280px;
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(12px);
   border-radius: var(--radius-md);
@@ -660,6 +661,7 @@ body {
   animation: fadeIn 0.3s ease;
   scrollbar-width: thin;
   scrollbar-color: rgba(46, 47, 47, 0.15) transparent;
+  order: -1;
 }
 
 .tri-info-panel::-webkit-scrollbar {
@@ -770,6 +772,57 @@ body {
   font-weight: 700;
 }
 
+/* Rotation Buttons */
+.rotation-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.rotation-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--turquoise);
+  color: var(--graphite);
+  border: 1px solid var(--turquoise);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.rotation-btn:hover {
+  background: var(--graphite);
+  color: var(--azure-mist);
+  border-color: var(--graphite);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--shadow-medium);
+}
+
+.rotation-btn:active {
+  transform: translateY(0);
+}
+
+.rotation-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.rotation-btn svg {
+  flex-shrink: 0;
+}
+
 /* ========================================
    Responsive
    ======================================== */
@@ -794,6 +847,7 @@ body {
     width: 100%;
     min-width: 100%;
     max-height: 140px;
+    order: 1;
   }
 
   .feature-cards {

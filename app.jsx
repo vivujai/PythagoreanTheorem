@@ -83,7 +83,19 @@ const DICT = {
   shape_index: { en: "{name} #{index}", fr: "{name} n°{index}", de: "{name} #{index}" },
   shape_name_triangle: { en: "Triangle", fr: "Triangle", de: "Dreieck" },
   shape_name_shape: { en: "Shape", fr: "Forme", de: "Form" },
-  a_b_c: { en: "a={a}, b={b}, c={c}", fr: "a={a}, b={b}, c={c}", de: "a={a}, b={b}, c={c}" }
+  a_b_c: { en: "a={a}, b={b}, c={c}", fr: "a={a}, b={b}, c={c}", de: "a={a}, b={b}, c={c}" },
+  rotate_cw: { en: "Rotate CW", fr: "Rotation horaire", de: "Im UZS drehen" },
+  rotate_ccw: { en: "Rotate CCW", fr: "Rotation antihoraire", de: "Gegen UZS drehen" },
+  rotate_origin_cw: { en: "Rotate Origin CW", fr: "Rotation origine horaire", de: "Im UZS um Ursprung drehen" },
+  rotate_origin_ccw: { en: "Rotate Origin CCW", fr: "Rotation origine antihoraire", de: "Gegen UZS um Ursprung drehen" },
+  rotation_snap: { en: "Rotation Snap", fr: "Accrochage de rotation", de: "Rotationsraster" },
+  degrees_15: { en: "15°", fr: "15°", de: "15°" },
+  degrees_30: { en: "30°", fr: "30°", de: "30°" },
+  degrees_45: { en: "45°", fr: "45°", de: "45°" },
+  degrees_90: { en: "90°", fr: "90°", de: "90°" },
+  degrees_5: { en: "5°", fr: "5°", de: "5°" },
+  degrees_10: { en: "10°", fr: "10°", de: "10°" },
+  degrees_1: { en: "1°", fr: "1°", de: "1°" }
 };
 
 const LanguageContext = createContext('en');
@@ -101,7 +113,7 @@ function useTranslation() {
       }
       return generateLorem(substitutedEn.length);
     }
-    
+
     let text = DICT[key]?.[lang] || enText;
     if (params) {
       for (let k in params) {
@@ -181,7 +193,7 @@ function importSvgAsShapes(svgText, currentPlaneSize) {
   }
 
   const rawPolygons = [];
-  
+
   if (isOurSvg) {
     const ourPolys = doc.querySelectorAll('.triangle-shape');
     ourPolys.forEach(p => {
@@ -202,7 +214,7 @@ function importSvgAsShapes(svgText, currentPlaneSize) {
       const w = parseFloat(r.getAttribute('width')) || 0;
       const h = parseFloat(r.getAttribute('height')) || 0;
       if (w > 0 && h > 0) {
-        rawPolygons.push(`${x},${y} ${x+w},${y} ${x+w},${y+h} ${x},${y+h}`);
+        rawPolygons.push(`${x},${y} ${x + w},${y} ${x + w},${y + h} ${x},${y + h}`);
       }
     });
     const circles = doc.querySelectorAll('circle');
@@ -239,13 +251,13 @@ function importSvgAsShapes(svgText, currentPlaneSize) {
     const coords = ptsStr.trim().split(/[\s,]+/).map(Number);
     const points = [];
     for (let i = 0; i < coords.length; i += 2) {
-      if (!isNaN(coords[i]) && !isNaN(coords[i+1])) {
-        points.push([coords[i], coords[i+1]]);
+      if (!isNaN(coords[i]) && !isNaN(coords[i + 1])) {
+        points.push([coords[i], coords[i + 1]]);
         if (!isOurSvg) {
           minX = Math.min(minX, coords[i]);
           maxX = Math.max(maxX, coords[i]);
-          minY = Math.min(minY, coords[i+1]);
-          maxY = Math.max(maxY, coords[i+1]);
+          minY = Math.min(minY, coords[i + 1]);
+          maxY = Math.max(maxY, coords[i + 1]);
         }
       }
     }
@@ -262,7 +274,7 @@ function importSvgAsShapes(svgText, currentPlaneSize) {
       const h = maxY - minY;
       const size = Math.max(w, h);
       if (size > 0) {
-        scale = size / (currentPlaneSize * 1.5); 
+        scale = size / (currentPlaneSize * 1.5);
       } else {
         scale = 1;
       }
@@ -309,7 +321,7 @@ function GraphView({ planeSize, gridSize, gridSnap, triangles, spiralTriangles, 
   }, []);
 
   // Sync local offsets with shapeOffsets
-  useEffect(() => { 
+  useEffect(() => {
     if (dragIndex === null) {
       setOffsets(shapeOffsets || {});
     }
@@ -742,7 +754,7 @@ function SpiralCreator({ onDrawSpiral }) {
 /* ========================================
    Side Panel
    ======================================== */
-function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, theme, setTheme, onDrawTriangles, onDrawSpiral, graphActive, onExport, onImport, lang, setLang }) {
+function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize, setGridSize, gridSnap, setGridSnap, rotationSnap, setRotationSnap, theme, setTheme, onDrawTriangles, onDrawSpiral, graphActive, onExport, onImport, lang, setLang }) {
   const t = useTranslation();
   const tabs = ['Calculators', 'Tools', 'Settings'];
 
@@ -770,13 +782,13 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
             <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '12px' }}>
               {t('export_desc')}
             </p>
-            <button id="btn-export-svg" className="calc-btn" onClick={onExport} style={{ backgroundColor: '#55d6be', color: '#1a1a1a', borderColor: '#55d6be' }}>{t('export_svg')}</button>
+            <button id="btn-export-svg" className="calc-btn" onClick={onExport} style={{ backgroundColor: 'var(--turquoise)', color: 'var(--graphite)', borderColor: 'var(--turquoise)' }}>{t('export_svg')}</button>
 
             <h3 style={{ marginTop: '24px' }}>{t('import_design')}</h3>
             <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '12px' }}>
               {t('import_desc')}
             </p>
-            <label id="btn-import-svg" className="calc-btn" style={{ backgroundColor: '#ffb3ba', color: '#1a1a1a', borderColor: '#ffb3ba', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
+            <label id="btn-import-svg" className="calc-btn" style={{ backgroundColor: 'var(--pastel-petal)', color: 'var(--graphite)', borderColor: 'var(--pastel-petal-dark)', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
               {t('import_svg')}<input type="file" accept=".svg" style={{ display: 'none' }} onChange={onImport} />
             </label>
           </div>
@@ -834,6 +846,20 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
                 </select>
               </div>
             </div>
+            <div className="settings-row" style={{ marginTop: '12px' }}>
+              <div className="input-group">
+                <label>{t('rotation_snap')}</label>
+                <select id="select-rotation-snap" value={rotationSnap} onChange={e => setRotationSnap(parseFloat(e.target.value))}>
+                  <option value={1}>{t('degrees_1')}</option>
+                  <option value={5}>{t('degrees_5')}</option>
+                  <option value={10}>{t('degrees_10')}</option>
+                  <option value={15}>{t('degrees_15')}</option>
+                  <option value={30}>{t('degrees_30')}</option>
+                  <option value={45}>{t('degrees_45')}</option>
+                  <option value={90}>{t('degrees_90')}</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -848,8 +874,11 @@ function SidePanel({ activeTab, setActiveTab, planeSize, setPlaneSize, gridSize,
 /* ========================================
    Triangle Info Panel
    ======================================== */
-function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll }) {
+function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll, onRotate, onRename, customName }) {
   const t = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+
   if (!triInfo) {
     return (
       <div className="tri-info-panel" id="tri-info-panel">
@@ -858,7 +887,7 @@ function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll }) {
           <p>{t('click_shape')}</p>
         </div>
         <div className="tri-info-actions" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px' }}>
-          <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: '#ff6b6b', color: 'white', borderColor: '#ff6b6b' }}>{t('delete_all')}</button>
+          <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: 'var(--pastel-petal)', color: 'var(--graphite)', borderColor: 'var(--pastel-petal-dark)' }}>{t('delete_all')}</button>
         </div>
       </div>
     );
@@ -868,12 +897,40 @@ function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll }) {
   const fmt = v => Number.isInteger(v) ? v.toString() : v.toFixed(2);
   const shapeNameKey = pts.length === 3 ? 'shape_name_triangle' : 'shape_name_shape';
   const shapeName = t(shapeNameKey);
+  const defaultTitle = t('shape_index', { name: shapeName, index: index + 1 });
+  const displayTitle = customName || defaultTitle;
+
+  const handleEditClick = () => {
+    setEditName(displayTitle);
+    setIsEditing(true);
+  };
+  
+  const handleSaveName = () => {
+    setIsEditing(false);
+    if (onRename) onRename(index, editName);
+  };
 
   return (
     <div className="tri-info-panel" id="tri-info-panel">
       <div className="tri-info-header">
         <span className="tri-info-swatch" style={{ background: color }}></span>
-        <h3>{t('shape_index', { name: shapeName, index: index + 1 })}</h3>
+        {isEditing ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input 
+              value={editName} 
+              onChange={e => setEditName(e.target.value)} 
+              onBlur={handleSaveName}
+              onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); }}
+              autoFocus
+              style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--graphite)', background: 'transparent', color: 'var(--graphite)', width: '150px' }}
+            />
+          </div>
+        ) : (
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {displayTitle}
+            <svg onClick={handleEditClick} style={{ cursor: 'pointer', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </h3>
+        )}
       </div>
 
       <div className="tri-info-section">
@@ -912,11 +969,31 @@ function TriangleInfoPanel({ triInfo, index, color, onDelete, onDeleteAll }) {
             <span className="tri-info-value tri-info-highlight">{fmt(area)} {t('sq_units')}</span>
           </div>
         </div>
+        <div className="rotation-buttons">
+          <button className="rotation-btn" onClick={() => onRotate && onRotate('ccw', 'centroid')} title={t('rotate_ccw')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+            {t('rotate_ccw')}
+          </button>
+          <button className="rotation-btn" onClick={() => onRotate && onRotate('cw', 'centroid')} title={t('rotate_cw')}>
+            {t('rotate_cw')}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" /></svg>
+          </button>
+        </div>
+        <div className="rotation-buttons" style={{ marginTop: '8px' }}>
+          <button className="rotation-btn" onClick={() => onRotate && onRotate('ccw', 'origin')} title={t('rotate_origin_ccw')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+            {t('rotate_origin_ccw')}
+          </button>
+          <button className="rotation-btn" onClick={() => onRotate && onRotate('cw', 'origin')} title={t('rotate_origin_cw')}>
+            {t('rotate_origin_cw')}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" /></svg>
+          </button>
+        </div>
       </div>
 
       <div className="tri-info-actions" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px' }}>
-        <button className="calc-btn" onClick={onDelete} style={{ backgroundColor: '#ff9999', color: 'white', borderColor: '#ff9999' }}>{t('delete_shape', { name: shapeName })}</button>
-        <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: '#ff6b6b', color: 'white', borderColor: '#ff6b6b' }}>{t('delete_all')}</button>
+        <button className="calc-btn" onClick={onDelete} style={{ backgroundColor: 'var(--pastel-petal)', color: 'var(--graphite)', borderColor: 'var(--pastel-petal-dark)' }}>{t('delete_shape', { name: shapeName })}</button>
+        <button className="calc-btn" onClick={onDeleteAll} style={{ backgroundColor: 'var(--pastel-petal-dark)', color: 'var(--graphite)', borderColor: 'var(--pastel-petal-dark)' }}>{t('delete_all')}</button>
       </div>
     </div>
   );
@@ -935,6 +1012,7 @@ function MainApp({ lang, setLang }) {
   const [spiralTriangles, setSpiralTriangles] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [theme, setTheme] = useState('pastel-petals');
+  const [rotationSnap, setRotationSnap] = useState(15);
   const t = useTranslation();
 
   useEffect(() => {
@@ -973,7 +1051,7 @@ function MainApp({ lang, setLang }) {
     } else {
       setTriangles(prev => prev.filter((_, i) => i !== selectedIndex));
     }
-    
+
     setShapeOffsets(prev => {
       const next = {};
       Object.keys(prev).forEach(key => {
@@ -994,18 +1072,94 @@ function MainApp({ lang, setLang }) {
     setSelectedIndex(null);
   }, []);
 
+  // Rotate the selected triangle around its centroid or the origin
+  const handleRotateTriangle = useCallback((direction, center = 'centroid') => {
+    if (selectedIndex === null) return;
+    const all = [...triangles, ...spiralTriangles];
+    const tri = all[selectedIndex];
+    if (!tri) return;
+
+    const offset = shapeOffsets[selectedIndex] || { x: 0, y: 0 };
+    // Compute actual positions (points + drag offset)
+    const actualPts = tri.points.map(p => [p[0] + offset.x, p[1] + offset.y]);
+
+    let cx, cy;
+    if (center === 'origin') {
+      cx = 0;
+      cy = 0;
+    } else {
+      // Centroid = midpoint of bounding box (as specified)
+      const xs = actualPts.map(p => p[0]);
+      const ys = actualPts.map(p => p[1]);
+      cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+      cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    }
+
+    const angleDeg = direction === 'cw' ? -rotationSnap : rotationSnap;
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const cosA = Math.cos(angleRad);
+    const sinA = Math.sin(angleRad);
+
+    // Rotate each actual point around centroid
+    const newActualPts = actualPts.map(p => {
+      const dx = p[0] - cx;
+      const dy = p[1] - cy;
+      return [
+        +(cx + dx * cosA - dy * sinA).toFixed(4),
+        +(cy + dx * sinA + dy * cosA).toFixed(4)
+      ];
+    });
+
+    // Store rotated points back as base points (subtract offset so the offset stays the same)
+    const newBasePts = newActualPts.map(p => [p[0] - offset.x, p[1] - offset.y]);
+
+    // Rotate labels too if they exist
+    const newLabels = (tri.labels || []).map(lb => {
+      const lx = lb.x + offset.x;
+      const ly = lb.y + offset.y;
+      const dx = lx - cx;
+      const dy = ly - cy;
+      return {
+        ...lb,
+        x: +(cx + dx * cosA - dy * sinA - offset.x).toFixed(4),
+        y: +(cy + dx * sinA + dy * cosA - offset.y).toFixed(4)
+      };
+    });
+
+    const newTri = { ...tri, points: newBasePts, labels: newLabels };
+
+    const isSpiral = selectedIndex >= triangles.length;
+    if (isSpiral) {
+      const spiralIdx = selectedIndex - triangles.length;
+      setSpiralTriangles(prev => prev.map((t, i) => i === spiralIdx ? newTri : t));
+    } else {
+      setTriangles(prev => prev.map((t, i) => i === selectedIndex ? newTri : t));
+    }
+  }, [selectedIndex, triangles, spiralTriangles, shapeOffsets, rotationSnap]);
+
+  const handleRenameTriangle = useCallback((idx, newName) => {
+    if (idx === null) return;
+    const isSpiral = idx >= triangles.length;
+    if (isSpiral) {
+      const spiralIdx = idx - triangles.length;
+      setSpiralTriangles(prev => prev.map((t, i) => i === spiralIdx ? { ...t, name: newName } : t));
+    } else {
+      setTriangles(prev => prev.map((t, i) => i === idx ? { ...t, name: newName } : t));
+    }
+  }, [triangles.length]);
+
   // Compute info for selected triangle
   const allTriangles = useMemo(() => [...triangles, ...spiralTriangles], [triangles, spiralTriangles]);
 
   const handleExportSvg = useCallback(() => {
     const svgEl = document.querySelector('.graph-svg-wrapper svg');
     if (!svgEl) return;
-    
+
     const clonedSvg = svgEl.cloneNode(true);
     if (!clonedSvg.getAttribute('xmlns')) {
       clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     }
-    
+
     const svgData = clonedSvg.outerHTML;
     const svgHeader = '<?xml version="1.0" standalone="no"?>\r\n';
     const blob = new Blob([svgHeader + svgData], { type: "image/svg+xml;charset=utf-8" });
@@ -1067,12 +1221,15 @@ function MainApp({ lang, setLang }) {
                   shapeOffsets={shapeOffsets}
                 />
               </div>
-              <TriangleInfoPanel 
-                triInfo={selectedTriInfo} 
-                index={selectedIndex} 
-                color={selectedColor} 
+              <TriangleInfoPanel
+                triInfo={selectedTriInfo}
+                index={selectedIndex}
+                color={selectedColor}
                 onDelete={handleDeleteTriangle}
                 onDeleteAll={handleDeleteAllTriangles}
+                onRotate={handleRotateTriangle}
+                onRename={handleRenameTriangle}
+                customName={selectedIndex !== null && allTriangles[selectedIndex] ? allTriangles[selectedIndex].name : null}
               />
             </div>
           </>
@@ -1083,6 +1240,7 @@ function MainApp({ lang, setLang }) {
         planeSize={planeSize} setPlaneSize={setPlaneSize}
         gridSize={gridSize} setGridSize={setGridSize}
         gridSnap={gridSnap} setGridSnap={setGridSnap}
+        rotationSnap={rotationSnap} setRotationSnap={setRotationSnap}
         theme={theme} setTheme={setTheme}
         onDrawTriangles={handleDrawTriangles}
         onDrawSpiral={handleDrawSpiral}

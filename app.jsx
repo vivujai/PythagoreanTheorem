@@ -47,10 +47,10 @@ const DICT = {
   create_spiral: { en: "Create Spiral", fr: "Créer la spirale", de: "Spirale erstellen" },
   enter_pos_vals: { en: "Enter positive values.", fr: "Entrez des valeurs positives.", de: "Geben Sie positive Werte ein." },
   export_design: { en: "Export Design", fr: "Exporter le design", de: "Design exportieren" },
-  export_desc: { en: "{t('export_desc')}", fr: "Enregistrez votre configuration de grille actuelle et vos triangles.", de: "Speichern Sie Ihre aktuelle Rasterkonfiguration und Dreiecke." },
+  export_desc: { en: "Save your current grid configuration and triangles.", fr: "Enregistrez votre configuration de grille actuelle et vos triangles.", de: "Speichern Sie Ihre aktuelle Rasterkonfiguration und Dreiecke." },
   export_svg: { en: "Export as .SVG", fr: "Exporter en .SVG", de: "Als .SVG exportieren" },
   import_design: { en: "Import Design", fr: "Importer un design", de: "Design importieren" },
-  import_desc: { en: "{t('import_desc')}", fr: "Chargez un fichier .SVG pour ajouter des formes à votre graphique.", de: "Laden Sie eine .SVG-Datei, um Ihrem Diagramm Formen hinzuzufügen." },
+  import_desc: { en: "Load an .SVG file to add shapes to your graph.", fr: "Chargez un fichier .SVG pour ajouter des formes à votre graphique.", de: "Laden Sie eine .SVG-Datei, um Ihrem Diagramm Formen hinzuzufügen." },
   import_svg: { en: "Import .SVG", fr: "Importer .SVG", de: ".SVG importieren" },
   no_valid_shapes: { en: "No valid shapes found in the SVG file.", fr: "Aucune forme valide trouvée dans le fichier SVG.", de: "Keine gültigen Formen in der SVG-Datei gefunden." },
   grid_size: { en: "Grid Size", fr: "Taille de la grille", de: "Rastergröße" },
@@ -95,7 +95,8 @@ const DICT = {
   degrees_90: { en: "90°", fr: "90°", de: "90°" },
   degrees_5: { en: "5°", fr: "5°", de: "5°" },
   degrees_10: { en: "10°", fr: "10°", de: "10°" },
-  degrees_1: { en: "1°", fr: "1°", de: "1°" }
+  degrees_1: { en: "1°", fr: "1°", de: "1°" },
+  input_positive: { en: "Please input a positive value.", fr: "Veuillez entrer une valeur positive.", de: "Bitte geben Sie einen positiven Wert ein." }
 };
 
 const LanguageContext = createContext('en');
@@ -578,6 +579,7 @@ function PythagoreanCalc({ onDraw }) {
 
   const calculate = () => {
     const av = parseFloat(a), bv = parseFloat(b), cv = parseFloat(c);
+    if (av < 0 || bv < 0 || cv < 0) { setMsg({ type: 'error', text: t('input_positive') }); return; }
     const filled = [!isNaN(av), !isNaN(bv), !isNaN(cv)];
     const count = filled.filter(Boolean).length;
     if (count !== 2) { setMsg({ type: 'error', text: t('fill_two_fields') }); return; }
@@ -619,8 +621,9 @@ function TripleIdentifier({ onDraw }) {
   const [msg, setMsg] = useState(null);
 
   const identify = () => {
-    const a = parseInt(v1), b = parseInt(v2), c = parseInt(v3);
-    if (isNaN(a) || isNaN(b) || isNaN(c)) { setMsg({ type: 'error', text: t('enter_three_ints') }); return; }
+    const a = parseFloat(v1), b = parseFloat(v2), c = parseFloat(v3);
+    if (a < 0 || b < 0 || c < 0) { setMsg({ type: 'error', text: t('input_positive') }); return; }
+    if (isNaN(a) || isNaN(b) || isNaN(c) || !Number.isInteger(a) || !Number.isInteger(b) || !Number.isInteger(c)) { setMsg({ type: 'error', text: t('enter_three_ints') }); return; }
     const sorted = [a, b, c].sort((x, y) => x - y);
     const isTriple = sorted[0] * sorted[0] + sorted[1] * sorted[1] === sorted[2] * sorted[2];
     if (isTriple) {
@@ -652,7 +655,8 @@ function Calc454590({ onDraw }) {
 
   const calculate = () => {
     const v = parseFloat(val);
-    if (isNaN(v) || v <= 0) { setMsg({ type: 'error', text: t('enter_pos_num') }); return; }
+    if (v < 0) { setMsg({ type: 'error', text: t('input_positive') }); return; }
+    if (isNaN(v) || v === 0) { setMsg({ type: 'error', text: t('enter_pos_num') }); return; }
     let s, hyp;
     if (mode === 'side') { s = v; hyp = v * Math.SQRT2; }
     else { hyp = v; s = v / Math.SQRT2; }
@@ -686,7 +690,8 @@ function RightAngleIdentifier({ onDraw }) {
 
   const identify = () => {
     const a = parseFloat(v1), b = parseFloat(v2), c = parseFloat(v3);
-    if (isNaN(a) || isNaN(b) || isNaN(c) || a <= 0 || b <= 0 || c <= 0) { setMsg({ type: 'error', text: t('enter_three_pos') }); return; }
+    if (a < 0 || b < 0 || c < 0) { setMsg({ type: 'error', text: t('input_positive') }); return; }
+    if (isNaN(a) || isNaN(b) || isNaN(c) || a === 0 || b === 0 || c === 0) { setMsg({ type: 'error', text: t('enter_three_pos') }); return; }
     const sorted = [a, b, c].sort((x, y) => x - y);
     const eps = 0.0001;
     const isRight = Math.abs(sorted[0] * sorted[0] + sorted[1] * sorted[1] - sorted[2] * sorted[2]) < eps;
@@ -720,7 +725,8 @@ function SpiralCreator({ onDrawSpiral }) {
 
   const create = () => {
     const b0 = parseFloat(base), h = parseFloat(height), N = parseInt(count);
-    if (isNaN(b0) || isNaN(h) || isNaN(N) || b0 <= 0 || h <= 0 || N <= 0) { setMsg({ type: 'error', text: t('enter_pos_vals') }); return; }
+    if (b0 < 0 || h < 0 || N < 0) { setMsg({ type: 'error', text: t('input_positive') }); return; }
+    if (isNaN(b0) || isNaN(h) || isNaN(N) || b0 === 0 || h === 0 || N === 0) { setMsg({ type: 'error', text: t('enter_pos_vals') }); return; }
     const tris = [];
     let cx = 0, cy = 0, angle = 0, currentBase = b0;
     for (let i = 0; i < N; i++) {
